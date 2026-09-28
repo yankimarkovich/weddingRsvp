@@ -12,18 +12,24 @@
   <% if (imageUrl) { %><meta property="og:image" content="<%= imageUrl %>"><% } %>
   <meta name="twitter:card" content="summary_large_image">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <div class="page">
     <% if (imageUrl) { %>
-      <img class="hero-image" src="<%= event.image_path %>" alt="<%= event.title %>">
+      <div class="hero-wrap"><img class="hero-image" src="<%= event.image_path %>" alt="<%= event.title %>"></div>
     <% } %>
 
     <div class="card center">
       <div class="event-title"><%= event.title || 'הזמנה לחתונה' %></div>
       <% if (event.event_date) { %>
         <div class="event-meta">📅 <strong><%= new Date(event.event_date).toLocaleString('he-IL', { dateStyle: 'full', timeStyle: 'short' }) %></strong></div>
+      <% } %>
+      <% if (event.hebrew_date) { %>
+        <div class="event-meta"><%= event.hebrew_date %></div>
       <% } %>
       <% if (event.venue_name) { %>
         <div class="event-meta">📍 <strong><%= event.venue_name %></strong><% if (event.venue_address) { %> · <%= event.venue_address %><% } %></div>
@@ -32,6 +38,20 @@
         <a class="btn btn-outline" style="width:auto; display:inline-flex; margin-top:12px;" href="<%= event.waze_link %>" target="_blank">🚗 ניווט בוויז</a>
       <% } %>
       <p class="muted" style="margin-top:14px;"><%= event.rsvp_intro %></p>
+
+      <% if (event.time_reception || event.time_ceremony || event.time_party) { %>
+        <div class="schedule">
+          <% if (event.time_reception) { %>
+            <div class="schedule-item"><div class="schedule-icon">🥂</div><div class="schedule-time"><%= event.time_reception %></div><div class="schedule-label">קבלת פנים</div></div>
+          <% } %>
+          <% if (event.time_ceremony) { %>
+            <div class="schedule-item"><div class="schedule-icon">💍</div><div class="schedule-time"><%= event.time_ceremony %></div><div class="schedule-label">חופה וקידושין</div></div>
+          <% } %>
+          <% if (event.time_party) { %>
+            <div class="schedule-item"><div class="schedule-icon">💃</div><div class="schedule-time"><%= event.time_party %></div><div class="schedule-label">ריקודים ונהנים</div></div>
+          <% } %>
+        </div>
+      <% } %>
     </div>
 
     <% if (submitted) { %>

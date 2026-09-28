@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>ניהול אישורי הגעה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -55,8 +58,16 @@
         <label for="title">שם/כותרת (יופיע למוזמנים)</label>
         <input type="text" id="title" name="title" value="<%= event.title %>" placeholder="החתונה של דנה ויוסי" required>
 
-        <label for="event_date">תאריך ושעת האירוע</label>
-        <input type="datetime-local" id="event_date" name="event_date" value="<%= event.event_date %>" required>
+        <div class="row">
+          <div>
+            <label for="event_date">תאריך ושעת האירוע</label>
+            <input type="datetime-local" id="event_date" name="event_date" value="<%= event.event_date %>" required>
+          </div>
+          <div>
+            <label for="hebrew_date">תאריך עברי (אופציונלי, לתצוגה בלבד)</label>
+            <input type="text" id="hebrew_date" name="hebrew_date" value="<%= event.hebrew_date %>" placeholder='כ"ה חשוון תשפ"ז'>
+          </div>
+        </div>
 
         <div class="row">
           <div>
@@ -71,6 +82,22 @@
 
         <label for="waze_link">לינק לוויז (אופציונלי)</label>
         <input type="text" id="waze_link" name="waze_link" value="<%= event.waze_link %>" placeholder="https://waze.com/ul/...">
+
+        <label>לוח זמנים (אופציונלי, יוצג כשלושה שלבים בדף אישור ההגעה)</label>
+        <div class="row">
+          <div>
+            <label for="time_reception" class="sub-label">קבלת פנים</label>
+            <input type="time" id="time_reception" name="time_reception" value="<%= event.time_reception %>">
+          </div>
+          <div>
+            <label for="time_ceremony" class="sub-label">חופה וקידושין</label>
+            <input type="time" id="time_ceremony" name="time_ceremony" value="<%= event.time_ceremony %>">
+          </div>
+          <div>
+            <label for="time_party" class="sub-label">ריקודים ונהנים</label>
+            <input type="time" id="time_party" name="time_party" value="<%= event.time_party %>">
+          </div>
+        </div>
 
         <label for="rsvp_intro">טקסט פתיחה בדף אישור ההגעה</label>
         <textarea id="rsvp_intro" name="rsvp_intro" rows="2"><%= event.rsvp_intro %></textarea>

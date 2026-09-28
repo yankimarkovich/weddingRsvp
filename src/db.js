@@ -18,7 +18,11 @@ db.exec(`
     waze_link TEXT NOT NULL DEFAULT '',
     image_path TEXT NOT NULL DEFAULT '',
     rsvp_intro TEXT NOT NULL DEFAULT 'נשמח לראותכם בשמחתנו!',
-    whatsapp_template TEXT NOT NULL DEFAULT 'היי! מוזמנים לחתונה שלנו 💍 לאישור הגעה: {link}'
+    whatsapp_template TEXT NOT NULL DEFAULT 'היי! מוזמנים לחתונה שלנו 💍 לאישור הגעה: {link}',
+    hebrew_date TEXT NOT NULL DEFAULT '',
+    time_reception TEXT NOT NULL DEFAULT '',
+    time_ceremony TEXT NOT NULL DEFAULT '',
+    time_party TEXT NOT NULL DEFAULT ''
   );
 
   INSERT OR IGNORE INTO event (id) VALUES (1);
@@ -49,5 +53,20 @@ db.exec(`
     UNIQUE (rule_id, guest_id)
   );
 `);
+
+// Migration guard: CREATE TABLE IF NOT EXISTS above won't add columns to an
+// already-existing event table, so add any missing ones by hand.
+const eventColumns = new Set(db.prepare('PRAGMA table_info(event)').all().map((c) => c.name));
+const newEventColumns = {
+  hebrew_date: "TEXT NOT NULL DEFAULT ''",
+  time_reception: "TEXT NOT NULL DEFAULT ''",
+  time_ceremony: "TEXT NOT NULL DEFAULT ''",
+  time_party: "TEXT NOT NULL DEFAULT ''",
+};
+for (const [name, def] of Object.entries(newEventColumns)) {
+  if (!eventColumns.has(name)) {
+    db.exec(`ALTER TABLE event ADD COLUMN ${name} ${def}`);
+  }
+}
 
 module.exports = db;

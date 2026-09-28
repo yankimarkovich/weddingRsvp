@@ -82,7 +82,19 @@ router.get('/', requireAuth, (req, res) => {
 
 router.post('/event', requireAuth, upload.single('image'), (req, res) => {
   try {
-    const { title, event_date, venue_name, venue_address, waze_link, rsvp_intro, whatsapp_template } = req.body;
+    const {
+      title,
+      event_date,
+      hebrew_date,
+      venue_name,
+      venue_address,
+      waze_link,
+      rsvp_intro,
+      whatsapp_template,
+      time_reception,
+      time_ceremony,
+      time_party,
+    } = req.body;
     const current = db.prepare('SELECT image_path FROM event WHERE id = 1').get();
 
     let imagePath = current.image_path;
@@ -95,8 +107,21 @@ router.post('/event', requireAuth, upload.single('image'), (req, res) => {
     }
 
     db.prepare(
-      `UPDATE event SET title=?, event_date=?, venue_name=?, venue_address=?, waze_link=?, image_path=?, rsvp_intro=?, whatsapp_template=? WHERE id=1`
-    ).run(title, event_date, venue_name, venue_address, waze_link || '', imagePath, rsvp_intro, whatsapp_template);
+      `UPDATE event SET title=?, event_date=?, hebrew_date=?, venue_name=?, venue_address=?, waze_link=?, image_path=?, rsvp_intro=?, whatsapp_template=?, time_reception=?, time_ceremony=?, time_party=? WHERE id=1`
+    ).run(
+      title,
+      event_date,
+      hebrew_date || '',
+      venue_name,
+      venue_address,
+      waze_link || '',
+      imagePath,
+      rsvp_intro,
+      whatsapp_template,
+      time_reception || '',
+      time_ceremony || '',
+      time_party || ''
+    );
 
     res.redirect('/admin?success=' + encodeURIComponent('פרטי האירוע עודכנו'));
   } catch (err) {
