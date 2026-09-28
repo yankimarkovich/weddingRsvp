@@ -205,7 +205,7 @@
           <thead><tr><th>שם</th><th>טלפון</th><th>סטטוס</th><th>אורחים</th><th></th></tr></thead>
           <tbody>
             <% guests.forEach(g => { %>
-              <tr>
+              <tr id="view-row-<%= g.id %>">
                 <td><%= g.name %></td>
                 <td><%= g.phone %></td>
                 <td>
@@ -215,8 +215,41 @@
                 </td>
                 <td><%= g.status === 'confirmed' ? g.guest_count : '-' %></td>
                 <td style="white-space:nowrap;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="toggleGuestEdit(<%= g.id %>)">עריכה</button>
                   <form method="POST" action="/admin/guests/<%= g.id %>/delete" style="display:inline" onsubmit="return confirm('למחוק את <%= g.name %>?')">
                     <button class="btn btn-danger btn-sm" type="submit">מחיקה</button>
+                  </form>
+                </td>
+              </tr>
+              <tr id="edit-row-<%= g.id %>" style="display:none;">
+                <td colspan="5">
+                  <form method="POST" action="/admin/guests/<%= g.id %>/update">
+                    <div class="row">
+                      <div>
+                        <label class="sub-label">שם</label>
+                        <input type="text" name="name" value="<%= g.name %>" required>
+                      </div>
+                      <div>
+                        <label class="sub-label">טלפון</label>
+                        <input type="tel" name="phone" value="<%= g.phone %>" required>
+                      </div>
+                      <div>
+                        <label class="sub-label">סטטוס</label>
+                        <select name="status">
+                          <option value="pending" <%= g.status === 'pending' ? 'selected' : '' %>>ממתין</option>
+                          <option value="confirmed" <%= g.status === 'confirmed' ? 'selected' : '' %>>מגיע</option>
+                          <option value="declined" <%= g.status === 'declined' ? 'selected' : '' %>>לא מגיע</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="sub-label">כמות אורחים</label>
+                        <input type="number" name="guest_count" min="1" max="30" value="<%= g.guest_count || 1 %>">
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                      <button class="btn btn-primary btn-sm" type="submit">שמירה</button>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="toggleGuestEdit(<%= g.id %>)">ביטול</button>
+                    </div>
                   </form>
                 </td>
               </tr>
@@ -232,6 +265,11 @@
       const el = document.getElementById('waText');
       el.select();
       navigator.clipboard.writeText(el.value).then(() => alert('הטקסט הועתק!'));
+    }
+
+    function toggleGuestEdit(id) {
+      const editRow = document.getElementById('edit-row-' + id);
+      editRow.style.display = editRow.style.display === 'none' ? 'table-row' : 'none';
     }
 
     const testRuleSelect = document.getElementById('testRuleSelect');

@@ -164,13 +164,31 @@ router.post('/guests', requireAuth, (req, res) => {
   }
 });
 
-router.post('/guests/:id/status', requireAuth, (req, res) => {
-  const { status } = req.body;
-  if (!['pending', 'confirmed', 'declined'].includes(status)) {
-    return res.redirect('/admin?error=' + encodeURIComponent('סטטוס לא תקין'));
+router.post('/guests/:id/update', requireAuth, (req, res) => {
+  try {
+    const { name, phone, status, guest_count } = req.body;
+    if (!name || !name.trim()) throw new Error('נא להזין שם');
+    if (!phone || !isValidIsraeliMobile(phone)) throw new Error('מספר טלפון לא תקין');
+    if (!['pending', 'confirmed', 'declined'].includes(status)) throw new Error('סטטוס לא תקין');
+
+    let count = parseInt(guest_count, 10);
+    if (status === 'confirmed') {
+      if (!Number.isInteger(count) || count < 1 || count > 30) throw new Error('כמות אורחים לא תקינה');
+    } else {
+      count = 0;
+    }
+
+    db.prepare(
+      "UPDATE guests SET name=?, phone=?, status=?, guest_count=?, updated_at=datetime('now') WHERE id=?"
+    ).run(name.trim(), normalizeLocal(phone), status, count, req.params.id);
+
+    res.redirect('/admin?success=' + encodeURIComponent('פרטי המוזמן עודכנו'));
+  } catch (err) {
+    const message = /UNIQUE constraint failed/.test(err.message)
+      ? 'מספר הטלפון הזה כבר קיים אצל מוזמן אחר'
+      : err.message;
+    res.redirect('/admin?error=' + encodeURIComponent(message));
   }
-  db.prepare("UPDATE guests SET status=?, updated_at=datetime('now') WHERE id=?").run(status, req.params.id);
-  res.redirect('/admin');
 });
 
 router.post('/guests/:id/delete', requireAuth, (req, res) => {
