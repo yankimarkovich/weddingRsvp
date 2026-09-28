@@ -25,11 +25,16 @@
 
     <div class="card center">
       <div class="event-title"><%= event.title || 'הזמנה לחתונה' %></div>
-      <% if (event.event_date) { %>
-        <div class="event-meta">📅 <strong><%= new Date(event.event_date).toLocaleString('he-IL', { dateStyle: 'full', timeStyle: 'short' }) %></strong></div>
-      <% } %>
-      <% if (event.hebrew_date) { %>
-        <div class="event-meta"><%= event.hebrew_date %></div>
+      <% if (event.event_date) {
+        const eventDateObj = new Date(event.event_date);
+        const dateParts = [
+          eventDateObj.toLocaleDateString('he-IL', { weekday: 'long' }),
+          eventDateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' }),
+        ];
+        if (event.hebrew_date) dateParts.push(event.hebrew_date);
+        dateParts.push(`בשעה ${eventDateObj.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`);
+      %>
+        <div class="event-meta">📅 <strong><%= dateParts.join(' | ') %></strong></div>
       <% } %>
       <% if (event.venue_name) { %>
         <div class="event-meta">📍 <strong><%= event.venue_name %></strong><% if (event.venue_address) { %> · <%= event.venue_address %><% } %></div>
