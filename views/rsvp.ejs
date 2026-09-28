@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title><%= event.title || 'אישור הגעה' %></title>
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="<%= event.title || 'הזמנה לחתונה' %>">
+  <meta property="og:description" content="<%= event.rsvp_intro %>">
+  <meta property="og:url" content="<%= pageUrl %>">
+  <% if (imageUrl) { %><meta property="og:image" content="<%= imageUrl %>"><% } %>
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="page">
+    <% if (imageUrl) { %>
+      <img class="hero-image" src="<%= event.image_path %>" alt="<%= event.title %>">
+    <% } %>
+
+    <div class="card center">
+      <div class="event-title"><%= event.title || 'הזמנה לחתונה' %></div>
+      <% if (event.event_date) { %>
+        <div class="event-meta">📅 <strong><%= new Date(event.event_date).toLocaleString('he-IL', { dateStyle: 'full', timeStyle: 'short' }) %></strong></div>
+      <% } %>
+      <% if (event.venue_name) { %>
+        <div class="event-meta">📍 <strong><%= event.venue_name %></strong><% if (event.venue_address) { %> · <%= event.venue_address %><% } %></div>
+      <% } %>
+      <% if (event.waze_link) { %>
+        <a class="btn btn-outline" style="width:auto; display:inline-flex; margin-top:12px;" href="<%= event.waze_link %>" target="_blank">🚗 ניווט בוויז</a>
+      <% } %>
+      <p class="muted" style="margin-top:14px;"><%= event.rsvp_intro %></p>
+    </div>
+
+    <% if (submitted) { %>
+      <div class="card center">
+        <div class="thanks-icon"><%= attending === 'yes' ? '🎉' : '💌' %></div>
+        <h2><%= attending === 'yes' ? 'תודה! ההגעה שלכם אושרה' : 'תודה על העדכון' %></h2>
+        <p class="muted">
+          <% if (attending === 'yes') { %>
+            נשמח לראותכם באירוע! נעדכן אתכם בתזכורות לקראת התאריך.
+          <% } else { %>
+            חבל שלא תוכלו להגיע, תודה שעדכנתם אותנו.
+          <% } %>
+        </p>
+      </div>
+    <% } else { %>
+      <div class="card">
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <form method="POST" action="/rsvp" id="rsvpForm">
+          <label for="name">שם מלא</label>
+          <input type="text" id="name" name="name" placeholder="ישראל ישראלי" required value="<%= typeof name !== 'undefined' ? name : '' %>">
+
+          <label for="phone">מספר טלפון</label>
+          <input type="tel" id="phone" name="phone" placeholder="05XXXXXXXX" required pattern="0[0-9]{8,9}">
+
+          <label>האם תגיעו?</label>
+          <input type="hidden" name="attending" id="attendingInput" value="">
+          <div class="choice-group">
+            <button type="button" class="choice-btn yes" data-value="yes">כן, מגיעים 🎉</button>
+            <button type="button" class="choice-btn no" data-value="no">לא נוכל להגיע</button>
+          </div>
+
+          <div id="guestCountWrap" style="display:none;">
+            <label for="guest_count">כמה אורחים בסה״כ (כולל אתכם)?</label>
+            <input type="number" id="guest_count" name="guest_count" min="1" max="30" value="1">
+          </div>
+
+          <button class="btn btn-primary" type="submit">שליחת אישור</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll('.choice-btn');
+    const attendingInput = document.getElementById('attendingInput');
+    const guestCountWrap = document.getElementById('guestCountWrap');
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const value = btn.dataset.value;
+        attendingInput.value = value;
+        guestCountWrap.style.display = value === 'yes' ? 'block' : 'none';
+      });
+    });
+
+    const form = document.getElementById('rsvpForm');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        if (!attendingInput.value) {
+          e.preventDefault();
+          alert('נא לבחור אם מגיעים');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

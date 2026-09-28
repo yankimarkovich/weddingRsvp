@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>ניהול אישורי הגעה</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="page admin-page">
+    <div class="top-bar">
+      <h1>💍 ניהול החתונה</h1>
+      <form method="POST" action="/admin/logout"><button class="btn btn-secondary btn-sm" type="submit">התנתקות</button></form>
+    </div>
+
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+    <div class="stats-grid">
+      <div class="stat-box"><div class="num"><%= stats.total %></div><div class="lbl">סה״כ מוזמנים</div></div>
+      <div class="stat-box"><div class="num"><%= stats.confirmed %></div><div class="lbl">מגיעים</div></div>
+      <div class="stat-box"><div class="num"><%= stats.declined %></div><div class="lbl">לא מגיעים</div></div>
+      <div class="stat-box"><div class="num"><%= stats.pending %></div><div class="lbl">ממתינים למענה</div></div>
+    </div>
+    <p class="muted center" style="margin-bottom:24px;">סה״כ מקומות מאושרים: <strong><%= stats.totalSeats %></strong></p>
+
+    <!-- תצוגה מקדימה + בדיקה -->
+    <div class="card">
+      <h2>👀 תצוגה מקדימה ובדיקה</h2>
+      <p class="muted">כך בדיוק ייראה דף אישור ההגעה למוזמנים שלך:</p>
+      <a class="btn btn-secondary" href="/rsvp" target="_blank">פתיחת דף אישור ההגעה כמו שהאורח רואה →</a>
+
+      <label for="testPhone" style="margin-top:22px;">שליחת הודעת SMS לדוגמה (לבדיקה שהחיבור עובד)</label>
+      <form method="POST" action="/admin/test-sms" class="inline-form">
+        <input type="tel" id="testPhone" name="phone" placeholder="05XXXXXXXX - הטלפון שלך" required>
+        <button class="btn btn-primary btn-sm" type="submit">שלח בדיקה</button>
+      </form>
+    </div>
+
+    <!-- שיתוף בוואטסאפ -->
+    <div class="card">
+      <h2>📤 שיתוף ההזמנה בוואטסאפ</h2>
+      <p class="muted">העתק את הטקסט הבא ושתף אותו ידנית בוואטסאפ לכל אורח. הלינק כולל תמונה וכותרת שיופיעו אוטומטית בתצוגה המקדימה.</p>
+      <div class="copy-box">
+        <textarea id="waText" readonly rows="3"><%= whatsappPreview %></textarea>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:0;" onclick="copyWaText()">העתקה</button>
+      </div>
+      <p class="muted">לינק ישיר: <a href="<%= rsvpLink %>" target="_blank"><%= rsvpLink %></a></p>
+    </div>
+
+    <!-- פרטי האירוע -->
+    <div class="card">
+      <h2>📋 פרטי האירוע</h2>
+      <form method="POST" action="/admin/event" enctype="multipart/form-data">
+        <label for="title">שם/כותרת (יופיע למוזמנים)</label>
+        <input type="text" id="title" name="title" value="<%= event.title %>" placeholder="החתונה של דנה ויוסי" required>
+
+        <label for="event_date">תאריך ושעת האירוע</label>
+        <input type="datetime-local" id="event_date" name="event_date" value="<%= event.event_date %>" required>
+
+        <div class="row">
+          <div>
+            <label for="venue_name">שם האולם/מקום</label>
+            <input type="text" id="venue_name" name="venue_name" value="<%= event.venue_name %>">
+          </div>
+          <div>
+            <label for="venue_address">כתובת</label>
+            <input type="text" id="venue_address" name="venue_address" value="<%= event.venue_address %>">
+          </div>
+        </div>
+
+        <label for="waze_link">לינק לוויז (אופציונלי)</label>
+        <input type="text" id="waze_link" name="waze_link" value="<%= event.waze_link %>" placeholder="https://waze.com/ul/...">
+
+        <label for="rsvp_intro">טקסט פתיחה בדף אישור ההגעה</label>
+        <textarea id="rsvp_intro" name="rsvp_intro" rows="2"><%= event.rsvp_intro %></textarea>
+
+        <label for="whatsapp_template">טקסט השיתוף לוואטסאפ (השתמשו ב-{link} עבור הלינק)</label>
+        <textarea id="whatsapp_template" name="whatsapp_template" rows="3"><%= event.whatsapp_template %></textarea>
+
+        <label for="image">תמונה ראשית (תופיע בדף ובתצוגה המקדימה בוואטסאפ)</label>
+        <input type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp">
+        <% if (event.image_path) { %>
+          <img src="<%= event.image_path %>" alt="" style="width:120px; border-radius:10px; margin-top:10px;">
+        <% } %>
+
+        <button class="btn btn-primary" type="submit">שמירת פרטי האירוע</button>
+      </form>
+    </div>
+
+    <!-- תזכורות -->
+    <div class="card">
+      <h2>⏰ תזכורות SMS אוטומטיות</h2>
+      <p class="muted">נשלחות אוטומטית רק למי שעדיין לא אישר הגעה. אפשר להשתמש ב-{name} וב-{link} בטקסט.</p>
+
+      <% if (rules.length) { %>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>כמה ימים לפני</th><th>בשעה</th><th>טקסט</th><th></th></tr></thead>
+            <tbody>
+              <% rules.forEach(r => { %>
+                <tr>
+                  <td><%= r.offset_days %></td>
+                  <td><%= r.send_time %></td>
+                  <td style="max-width:260px; white-space:normal;"><%= r.message_template %></td>
+                  <td>
+                    <form method="POST" action="/admin/reminders/<%= r.id %>/delete" onsubmit="return confirm('למחוק תזכורת זו?')">
+                      <button class="btn btn-danger btn-sm" type="submit">מחיקה</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="muted">עדיין לא הוגדרו תזכורות.</p>
+      <% } %>
+
+      <form method="POST" action="/admin/reminders" style="margin-top:18px;">
+        <div class="row">
+          <div>
+            <label for="offset_days">כמה ימים לפני האירוע</label>
+            <input type="number" id="offset_days" name="offset_days" min="0" max="120" required placeholder="14">
+          </div>
+          <div>
+            <label for="send_time">באיזו שעה</label>
+            <input type="time" id="send_time" name="send_time" required value="10:00">
+          </div>
+        </div>
+        <label for="message_template">טקסט התזכורת</label>
+        <textarea id="message_template" name="message_template" rows="2" required placeholder="היי {name}! תזכורת לאישור הגעה לחתונה שלנו: {link}"></textarea>
+        <button class="btn btn-secondary" type="submit">הוספת תזכורת</button>
+      </form>
+    </div>
+
+    <!-- ניהול מוזמנים -->
+    <div class="card">
+      <h2>👥 רשימת מוזמנים</h2>
+
+      <form method="POST" action="/admin/guests">
+        <div class="row">
+          <div>
+            <label for="name">שם</label>
+            <input type="text" id="name" name="name" placeholder="שם המוזמן">
+          </div>
+          <div>
+            <label for="phone">טלפון</label>
+            <input type="tel" id="phone" name="phone" placeholder="05XXXXXXXX">
+          </div>
+        </div>
+
+        <label for="bulk">או הדבקה מרובה (שורה לכל מוזמן, בפורמט: שם,טלפון)</label>
+        <textarea id="bulk" name="bulk" rows="4" placeholder="ישראל ישראלי,0501234567&#10;דנה כהן,0521234567"></textarea>
+
+        <button class="btn btn-primary" type="submit">הוספת מוזמנים</button>
+      </form>
+
+      <div class="table-wrap" style="margin-top:20px;">
+        <table>
+          <thead><tr><th>שם</th><th>טלפון</th><th>סטטוס</th><th>אורחים</th><th></th></tr></thead>
+          <tbody>
+            <% guests.forEach(g => { %>
+              <tr>
+                <td><%= g.name %></td>
+                <td><%= g.phone %></td>
+                <td>
+                  <span class="status-badge status-<%= g.status %>">
+                    <%= g.status === 'confirmed' ? 'מגיע' : g.status === 'declined' ? 'לא מגיע' : 'ממתין' %>
+                  </span>
+                </td>
+                <td><%= g.status === 'confirmed' ? g.guest_count : '-' %></td>
+                <td style="white-space:nowrap;">
+                  <form method="POST" action="/admin/guests/<%= g.id %>/delete" style="display:inline" onsubmit="return confirm('למחוק את <%= g.name %>?')">
+                    <button class="btn btn-danger btn-sm" type="submit">מחיקה</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copyWaText() {
+      const el = document.getElementById('waText');
+      el.select();
+      navigator.clipboard.writeText(el.value).then(() => alert('הטקסט הועתק!'));
+    }
+  </script>
+</body>
+</html>
