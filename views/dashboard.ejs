@@ -33,9 +33,26 @@
       <p class="muted">כך בדיוק ייראה דף אישור ההגעה למוזמנים שלך:</p>
       <a class="btn btn-secondary" href="/rsvp" target="_blank">פתיחת דף אישור ההגעה כמו שהאורח רואה →</a>
 
-      <label for="testPhone" style="margin-top:22px;">שליחת הודעת SMS לדוגמה (לבדיקה שהחיבור עובד)</label>
-      <form method="POST" action="/admin/test-sms" class="inline-form">
+      <label for="testPhone" style="margin-top:22px;">שליחת הודעת SMS לדוגמה</label>
+      <form method="POST" action="/admin/test-sms">
         <input type="tel" id="testPhone" name="phone" placeholder="05XXXXXXXX - הטלפון שלך" required>
+
+        <% if (rules.length) { %>
+          <label for="testRuleSelect" class="sub-label">טעינת נוסח מתזכורת קיימת (אופציונלי)</label>
+          <select id="testRuleSelect">
+            <option value="">— בחר תזכורת לטעינה —</option>
+            <% rules.forEach(r => { %>
+              <option value="<%= r.message_template.replace(/"/g, '&quot;') %>"><%= r.offset_days %> ימים לפני, בשעה <%= r.send_time %></option>
+            <% }) %>
+          </select>
+        <% } %>
+
+        <label for="testName" class="sub-label">שם לדוגמה (יחליף את {name} בהודעה)</label>
+        <input type="text" id="testName" name="name" placeholder="אורח לדוגמה">
+
+        <label for="testMessage" class="sub-label">טקסט ההודעה (ריק = הודעת בדיקה כללית. אפשר להדביק כאן את הנוסח האמיתי כולל {name} ו-{link} כדי לבדוק בדיוק מה שיישלח)</label>
+        <textarea id="testMessage" name="message" rows="3" placeholder="השאירו ריק לבדיקת חיבור כללית"></textarea>
+
         <button class="btn btn-primary btn-sm" type="submit">שלח בדיקה</button>
       </form>
     </div>
@@ -215,6 +232,15 @@
       const el = document.getElementById('waText');
       el.select();
       navigator.clipboard.writeText(el.value).then(() => alert('הטקסט הועתק!'));
+    }
+
+    const testRuleSelect = document.getElementById('testRuleSelect');
+    if (testRuleSelect) {
+      testRuleSelect.addEventListener('change', () => {
+        if (testRuleSelect.value) {
+          document.getElementById('testMessage').value = testRuleSelect.value;
+        }
+      });
     }
   </script>
 </body>

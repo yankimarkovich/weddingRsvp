@@ -195,12 +195,21 @@ router.post('/reminders/:id/delete', requireAuth, (req, res) => {
 });
 
 router.post('/test-sms', requireAuth, async (req, res) => {
-  const { phone } = req.body;
+  const { phone, message, name } = req.body;
   if (!phone || !isValidIsraeliMobile(phone)) {
     return res.redirect('/admin?error=' + encodeURIComponent('נא להזין מספר טלפון נייד תקין לבדיקה'));
   }
+
+  const baseUrl = (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  const link = `${baseUrl}/rsvp`;
+  const sampleName = (name && name.trim()) || 'אורח לדוגמה';
+  const text =
+    message && message.trim()
+      ? message.trim().replaceAll('{name}', sampleName).replaceAll('{link}', link)
+      : 'זוהי הודעת בדיקה ממערכת אישורי ההגעה לחתונה שלכם 💍 אם קיבלתם אותה - השליחה עובדת!';
+
   try {
-    await sendSms(phone, 'זוהי הודעת בדיקה ממערכת אישורי ההגעה לחתונה שלכם 💍 אם קיבלתם אותה - השליחה עובדת!');
+    await sendSms(phone, text);
     res.redirect('/admin?success=' + encodeURIComponent(`הודעת בדיקה נשלחה ל-${normalizeLocal(phone)}`));
   } catch (err) {
     res.redirect('/admin?error=' + encodeURIComponent('שליחת הבדיקה נכשלה: ' + err.message));
