@@ -12,7 +12,7 @@ const router = express.Router();
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: path.join(__dirname, '..', '..', 'public', 'uploads'),
+    destination: path.join(__dirname, '..', '..', 'data', 'uploads'),
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname) || '.jpg';
       cb(null, `event-${Date.now()}${ext}`);
@@ -100,7 +100,7 @@ router.post('/event', requireAuth, upload.single('image'), (req, res) => {
     let imagePath = current.image_path;
     if (req.file) {
       if (imagePath) {
-        const oldFile = path.join(__dirname, '..', '..', 'public', imagePath);
+        const oldFile = path.join(__dirname, '..', '..', 'data', imagePath);
         fs.unlink(oldFile, () => {});
       }
       imagePath = `/uploads/${req.file.filename}`;

@@ -5,6 +5,9 @@ const Database = require('better-sqlite3');
 const dataDir = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
+const uploadsDir = path.join(dataDir, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
 const db = new Database(path.join(dataDir, 'wedding.db'));
 db.pragma('journal_mode = WAL');
 

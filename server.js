@@ -14,6 +14,10 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// Uploaded images live on the persistent volume (mounted at /app/data), not
+// in public/, since public/ is inside the container's ephemeral filesystem
+// and gets wiped on every deploy.
+app.use('/uploads', express.static(path.join(__dirname, 'data', 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
